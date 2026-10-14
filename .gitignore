@@ -1,0 +1,10 @@
+classes/
+.DS_Store
+javac.*.args
+/*.java
+*.aux
+*.log
+*.toc
+*.out
+*.synctex.gz
+.nfs*
