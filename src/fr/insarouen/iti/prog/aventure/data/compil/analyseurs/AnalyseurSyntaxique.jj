@@ -1,0 +1,151 @@
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = true;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+PARSER_BEGIN(AnalyseurSyntaxique)
+package fr.insarouen.iti.prog.aventure.data.compil.analyseurs;
+
+import java.util.ArrayList;
+import java.util.List;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.Configuration;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.Affectation;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.AppelFonction;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.Argument;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.Entier;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.Chaine;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.NomFonction;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.Identifiant;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.EtatJeu;
+import fr.insarouen.iti.prog.aventure.data.compil.ast.Argument;
+
+public class AnalyseurSyntaxique {
+}
+
+PARSER_END(AnalyseurSyntaxique)
+
+SKIP : {
+    " " | "\n" | "\t"
+}
+
+TOKEN : {
+    <PARAG:"(">
+    | <PARAD:")">
+    | <EGAL : "=" >
+    | <GUILLEMET: "\"">
+    | <VIRGULE : ",">
+    | <ENTIER : (["0"-"9"])+>
+    | <ETATJEU : ("SUCCES" | "ECHEC" | "ENCOURS")>
+    | <NOMFONCTION : "monde" | "piece" | "porte" | "cle" | "humain" | "monstre"| "cdf_vivant_dans_piece"|"serrure"|"pied_de_biche"|"cdf_vivant_possede"|"cdf_conjonction">
+    | <IDENTIFIANT : (["A"-"Z", "a"-"z"])(["A"-"Z", "a"-"z", "_", "0"-"9"])*>
+    | <CHAINE : "\"" (~["\""])* "\"">
+}
+
+Configuration config():
+{Affectation a ;
+  Configuration config = new Configuration();
+}
+{
+  (a = affectation() {config.ajouterAffectation(a);} )* 
+  <EOF>
+  {return config;}
+}    
+
+Affectation affectation():
+{ Identifiant nomVar;
+  AppelFonction f;
+}
+{
+    nomVar = identifiant()  <EGAL> f = appel_fonction()
+    {return new Affectation(nomVar, f);}
+}
+
+AppelFonction appel_fonction() :
+{Token t;
+ NomFonction nom;
+  List<Argument> listeArg = new ArrayList<Argument>();
+}
+{
+  nom = nomFonction() <PARAG> listeArg = liste_arguments() <PARAD> 
+  {return new AppelFonction(nom, listeArg);}
+}
+
+List<Argument> liste_arguments():
+{ Token t;
+  Argument a;
+  List<Argument> res = new ArrayList<Argument>();}
+{
+    ( a = argument() {res.add(a);}
+    (<VIRGULE> a = argument() {res.add(a);})*
+    )?
+    {return res;}
+}
+
+Argument argument():
+{ 
+  Argument a;
+}
+{
+    ( a = etatJeu()
+    | a = entier()
+    | a = chaine() 
+    | a = identifiant()
+    | a = appel_fonction() 
+    )
+    {return a;}
+}
+
+Chaine chaine():
+{
+  Token t;
+}
+{
+  t = <CHAINE> {return new Chaine(t.image.substring(1, t.image.length()-1));}
+}
+
+Entier entier():
+{
+  Token t;
+}
+{
+  t = <ENTIER> {return new Entier(Integer.parseInt(t.image));}
+}
+
+Identifiant identifiant():
+{
+  Token t;
+}
+{
+  t = <IDENTIFIANT> {return new Identifiant(t.image);}
+}
+
+NomFonction nomFonction():
+{
+  Token t;
+}
+{
+  t = <NOMFONCTION> {return NomFonction.valueOf(t.image);}
+}
+
+EtatJeu etatJeu():
+{
+  Token t;
+}
+{
+  t = <ETATJEU> {return new EtatJeu(t.image);}
+}

@@ -1,0 +1,1 @@
+java -classpath classes/:/usr/share/java/postgresql-jdbc4.jar fr.insarouen.iti.prog.aventure.Main

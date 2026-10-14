@@ -1,0 +1,100 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{pdfpages}
+\geometry{hmargin=3cm,vmargin=3cm}
+
+\lstdefinestyle{JavaStyle}{
+  language=Java,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny,
+  frame=single,
+  breaklines=true,
+  tabsize=4
+}
+
+\begin{document}
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyhead[L]{
+        \includegraphics[height=1.5cm]{logo.jpg}
+    }
+    \fancyhead[R]{\thepage}
+}
+\pagestyle{fancy}
+\fancyhf{}
+
+
+\tableofcontents
+\cleardoublepage
+
+\chapter{Introduction}
+Afin d'améliorer et optimiser notre code du projet ITIAventure, et donc notre projet integratif orienté objet, on souhaite introduire une partie uml et design patterns.
+Cette partie a pour but de découpler le code de création de certaines entités du monde ITIAventure.
+
+\section{ITIAventureFactory}
+Pour decentraliser notre code, nous avons choisi d'implémenter une abstract factory dans le package fr.insarouen.iti.prog.aventure. qu'on a nommé ITIAventureFactory qui contient les méthodes abstract qui devront être complétée dans les classes qui héritent de cette factory et qui devront créer les classes Monde, Monstre, Piece, Porte, Serrure et Cle. 
+
+On a ensuite créé la classe ITIAventureFactoryCreation, c'est la classe qui hérite de ITIAventureFactory et redéfinit ses méthodes abstract, ces méthodes consistent généralement à retourner une instance de la classe en question en fonction des paramètres.
+\begin{itemize}
+\item Porte: Pour créer une porte on vérifie d'abort si la serrure a été entrée en paramètres, on utilise le constructeur avec serrure le cas échéant, sinon, on utilise l'autre constructeur sans Serrure;
+\item Cle: la clé est instanciée à partir de la serrure;
+\item Serrure: pour la serrure on a choisit de l'instancier à partir du constructeur qui ne prend en paramètres que le monde.
+\end{itemize}
+
+\subsection{Lecteur Description}
+
+Pour utiliser les factorys créées on modifie notre classe LecteurDescription dans le package fr.insarouen.iti.prog.aventure.data. On a modifié le constructeur de la classe de facon à ce qui'il prenne en considération le nouveau fichier de simulation dans lequel le nom de la factory à utiliser a été ajouteé dans la première ligne. 
+Après avoir lu cette ligne, on instancie une factory avec le nom lu.
+Dans les méthodes de création, au lieu d'instancier directement de la classe, on utilise la factory.
+
+\section{ITISpaceOpera}
+
+ITISpaceOpera est une aventure futuriste qui s'appuie sur ITIAventure avec les correspondance s suivantes:
+\begin{itemize}
+\item Monde  Galaxie
+\item Piece : VaisseauSpatial
+\item Porte : Teleporteur
+\item Cle : Badge
+\item Serrure : LecteurBadge
+\item Monstre : Alien.
+
+\end{itemize}
+
+On a créé les classes correspondantes à ces entités dans le package fr.insarouen.iti.prog.aventure.spaceopera.
+Chacune de ces classes hérite de la classe qui lui correspond, et on utilise tout simplement un super dans le constructeur.
+
+Dans la classe LecteurBadge, qui correspond à la serrure, on a redéfinit la méthode creerCle() pour que le badge (Correspondant à la clé) soit instancié à partir du LecteurBadge.
+
+Dans l'implémentation de cette méthode, on utilise le nom de la clé nomCle, or cet attribut était de visibilité private; on a choisit donc de le mettre en protected pour pouvoir y accéder  dans la méthode.
+
+On a créé ensuite la classe ITISpaceOperaFactory qui hérite elle aussi de la ITIAventureFactory. Elle consiste sur le même principe de ITIAventureFactoryCreation et retourne des instances des classes nouvellement créées de ITISpaceOpera;
+
+Ayant créé cette nouvelle aventure, nous devons remodifier la classe LecteurDescription pour qu'elle prenne en considération la nouvelle factory.
+
+On a gardé la même logique 
+
+
+
+
+
+
+
+
+
+
+\end{document}

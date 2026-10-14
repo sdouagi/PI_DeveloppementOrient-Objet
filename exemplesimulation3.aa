@@ -1,0 +1,18 @@
+ITISpaceOpera
+Monde LaGalaxieImpitoyabledITI
+Piece VaisseauDesNicolas
+Piece VaisseauAmiral
+Piece VaisseauDeClement
+Piece VaisseauDeLaurent
+Piece Espace
+PorteSerrure Portail1 Espace VaisseauDesNicolas
+PorteSerrure Portail2 Espace VaisseauAmiral
+Porte Portail3 Espace VaisseauDeClement
+Porte Portail4 Espace VaisseauDeLaurent
+Porte Trappe VaisseauDeClement VaisseauAmiral
+Porte PassageSecret VaisseauDesNicolas VaisseauDeLaurent
+Cle Portail1 VaisseauDeClement
+Cle Portail2 VaisseauDeLaurent
+JoueurHumain Etudiant1 10 12 Espace
+ConditionDeFinVivantDansPiece SUCCES Etudiant1 VaisseauDesNicolas
+ConditionDeFinVivantDansPiece ECHEC Etudiant1 VaisseauAmiral

@@ -1,0 +1,62 @@
+
+\definecolor{vert}{RGB}{0,128,0}
+
+\newcommand{\ucode}[1]{\underline{\texttt{#1}}}
+
+\section{Passage E/A \textrightarrow{} Modèle relationnel}
+
+\subsection{Étapes générales}
+
+\footnotesize
+\begin{itemize}
+  \item \textbf{Cas 1 :} Entité non‑faible  
+  \item \textbf{Cas 2 :} Entité faible  
+  \item \textbf{Cas 3 :} Associations $\langle1,1\rangle$  
+  \item \textbf{Cas 4 :} Autres associations  
+\end{itemize}
+
+\subsection{Cas 1 : Entité non‑faible}
+\begin{itemize}
+  \item \texttt{Porte(}\ucode{nom\_porte}\texttt{, état)}  
+  \item \texttt{Monde(}\ucode{nom\_monde}\texttt{)}  
+  \item \texttt{JoueurHumain(}\ucode{nom\_joueur}\texttt{, ptsVie, ptsForce)}  
+  \item \texttt{PiedDeBiche(}\ucode{nom\_pdb}\texttt{, estDéplaçable)}  
+  \item \texttt{Pièce(}\ucode{nom\_piece}\texttt{)}  
+\end{itemize}
+
+\subsection{Cas 2 : Entité faible}
+\begin{quote}
+Aucune entité faible dans le modèle imposé.
+\end{quote}
+
+\subsection{Cas 3 : Associations $\langle1,1\rangle$}
+Types d’associations
+\begin{itemize}
+  \item Contient (Monde–Porte)  
+  \item Contient (Monde–Pièce)  
+  \item Contient (Monde–JoueurHumain)  
+  \item Contient (Pièce–JoueurHumain)  
+\end{itemize}
+
+Relations générées
+\begin{itemize}
+  \item \texttt{Porte(}\ucode{nom\_porte}\texttt{, état, }
+        \textcolor{vert}{\ucode{nom\_monde}}\texttt{)}  
+  \item \texttt{Monde(}\ucode{nom\_monde}\texttt{)}  
+  \item \texttt{JoueurHumain(}\ucode{nom\_joueur}\texttt{, ptsVie, ptsForce, }
+        \textcolor{vert}{\ucode{nom\_monde}}\texttt{, }
+        \textcolor{vert}{\ucode{nom\_piece}}\texttt{)}  
+  \item \texttt{PiedDeBiche(}\ucode{nom\_pdb}\texttt{, estDéplaçable)}  
+  \item \texttt{Pièce(}\ucode{nom\_piece}\texttt{, }
+        \textcolor{vert}{\ucode{nom\_monde}}\texttt{)}  
+\end{itemize}
+
+\subsection{Cas 4 : Autres associations}
+\begin{itemize}
+  \item \texttt{Possède\_Piece\_Porte(}\ucode{nom\_porte}\texttt{, }\ucode{nom\_piece}\texttt{, }\ucode{nom\_monde}\texttt{)}  
+  \item \texttt{Contient\_Piece\_Pdb(}\ucode{nom\_piece}\texttt{, }\ucode{nom\_pdb}\texttt{, }\ucode{nom\_monde}\texttt{)}  
+  \item \texttt{Possède\_Pdb\_JoueurHumain(}\ucode{nom\_pdb}\texttt{, }\ucode{nom\_joueur}\texttt{, }\ucode{nom\_monde}\texttt{, }\ucode{nom\_piece}\texttt{)}  
+\end{itemize}
+
+\normalsize
+

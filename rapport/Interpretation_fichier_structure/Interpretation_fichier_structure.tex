@@ -1,0 +1,102 @@
+Au cours de notre projet, nous devions également assurer la lecture d’un fichier de configuration structuré : le fichier actuel étant limité et sans gestion des erreurs, un nouveau formalisme est proposé.
+
+\section{Pourquoi avons-nous besoin de JavaCC et d'appliquer nos cours de compilation ?}
+
+Le fichier à notre disposition montre que nous travaillons sur un langage algébrique. En effet, le langage est équilibré, mais il ne s’agit pas simplement d’un langage rationnel, comme on peut le constater à la ligne 7 avec \texttt{"serrure(m1))"}. Ainsi, un compilateur est nécessaire, et l’utilisation de JavaCC facilite la conception de l’analyseur lexical et syntaxique.
+
+\section{Patron de conception Visiteur/Visitable}
+
+Afin de séparer les algorithmes de traitement des données, nous avons implémenté le patron de conception Visiteur/Visitable. Nous avons fait le choix de créer une classe pour chaque nœud de l’AST. Ainsi, nous avons appliqué le modèle originel du patron Visiteur, pour sa simplicité et en raison du temps limité dont nous disposions.
+
+\subsection{Analyse Syntaxique}
+
+L'analyse syntaxique commence après la phase lexicale (générée aussi par JavaCC), qui découpe le fichier en token comme :
+\begin{itemize}
+    \item des noms de fonction (\texttt{monde}, \texttt{piece}, \texttt{porte}),
+    \item des identifiants (\texttt{m1}, \texttt{bureau\_nicos}),
+    \item des chaînes (\texttt{"BureauDesNicolas"}, \texttt{"Porte1"}),
+    \item des entiers,
+    \item des états du jeu (\texttt{SUCCES}, \texttt{ECHEC}, \texttt{ENCOURS}),
+    \item des symboles : parenthèses, virgules et signe égal (\texttt{=}).
+\end{itemize}
+
+\textbf{Évolution du design}
+
+Au début, nous avions fait le choix d’utiliser une seule classe \texttt{Argument} pour englober tous les type possibles (entier, chaîne, nom de fonction, identifiant, appel de fonction), avec un attribut interne \texttt{type} pour indiquer la catégorie.  
+Ce design paraissait plus compact et facile à écrire, mais il rendait le code moins claire et lisible, et s'est avéré complexe à manipuler lors des phases ultérieures au niveau du transtypage  par exemple.
+
+Nous avons donc décidé de changer d’approche et d’opter pour une classe dédiée par type d’argument :  
+\texttt{Entier}, \texttt{Chaine}, \texttt{Identifiant}, \texttt{NomFonction}, \texttt{AppelFonction}, etc.  
+Ce choix s’est avéré plus simple, plus robuste, et plus lisible: chaque classe sait ce qu’elle représente et peut être directement visitée sans vérification manuelle du type.
+
+\textbf{Règles syntaxiques}
+\begin{itemize}
+    \item \textbf{Affectation} := Identifiant \texttt{=} AppelFonction
+    \item \textbf{AppelFonction} := NomFonction \texttt{(} ListeArguments \texttt{)}
+    \item \textbf{ListeArguments} := Argument+
+    \item \textbf{Argument} := Entier | EtatDuJeu | Chaine | Identifiant | AppelFonction
+\end{itemize}
+
+Prenons un exemple avec la première règle, qui indique qu'une ligne doit correspondre à une affectation d'un identifiant à un appel de fonction.
+
+\textbf{Exemple :}
+\begin{Verbatim}
+porte1 = porte(m1, "Porte1", bureau\_nicos, couloir, serrure(m1))
+\end{Verbatim}
+Décomposition :
+\begin{itemize}
+    \item une affectation : \texttt{porte1 = porte(...)},
+    \item un appel de fonction : \texttt{porte(...)},
+    \item une liste d’arguments composée d’identifiant, d’une chaîne et d’un appel de fonction imbriqué.
+\end{itemize}
+
+Si la structure respecte les règles, l’analyseur génère un AST composé :
+\begin{itemize}
+    \item d'un objet \texttt{Confuguration} qui contients toutes les affectations
+    \item des instances de la classe \texttt{Affectation},
+    \item des instances de la classe \texttt{AppelFonction},
+    \item et des instances des classe comme \texttt{Entier}, \texttt{Chaine}, \texttt{Identifiant}, \texttt{EtatJeu} selon le type exact de chaque argument.
+\end{itemize}
+
+Ce découpage fin, combiné à notre changement de design, a considérablement simplifié l’écriture de l’analyse sémantique et de la phase de traitement.
+
+
+\subsection{Analyse Sémantique}
+
+Pour garantir la cohérence et la validité de notre fichier de configuration, nous avons décidé d’implémenter une analyse sémantique, en complément des phases lexicale et syntaxique.
+
+Les vérifications effectuées incluent notamment :
+\begin{itemize}
+    \item la vérification de l’existence préalable des identifiants utilisés,
+    \item le contrôle du bon type des arguments passés aux fonctions,
+    \item la détection des redéfinitions interdites.
+\end{itemize}
+
+Nous avons fait le choix d’implémenter l’analyse sémantique directement dans les classes \texttt{AppelFonction} et \texttt{LecteurCompil}, principalement pour des raisons de contraintes temporelles.
+
+Plusieurs éléments ont renforcé ce choix :
+\begin{itemize}
+    \item \textbf{Simplicité d’intégration} : en regroupant les vérifications sémantiques proches des structures manipulées, nous avons évité de multiplier les classes ou modules séparés, ce qui a simplifié l’architecture générale et limité les risques d’erreurs liés à la complexité.
+    \item \textbf{Adaptation aux besoins du projet} : l’objectif principal était d’assurer une validation fonctionnelle du projet dans les délais, sans nécessairement chercher à construire une architecture entièrement découplée dès la première version.
+    \item \textbf{Cohérence locale} : certaines vérifications (comme le contrôle des paramètres dans un appel de fonction) sont étroitement liées à la logique de la classe \texttt{AppelFonction}, et les déplacer dans un module séparé aurait nécessité de créer des mécanismes supplémentaires de communication entre les classes.
+\end{itemize}
+
+\subsection{Phase de Traitement}
+
+La phase de traitement a été implémenté directement dans la classe \texttt{LecteurCompil}, qui joue le rôle de \textbf{visiteur} pour les différentes classes \texttt{visitable} de l’AST : \texttt{Configuration}, \texttt{Affectation} et \texttt{AppelFonction}.
+
+Concrètement, nous avons défini trois méthodes principales :
+\begin{itemize}
+    \item \texttt{visiter(Configuration)} : cette méthode récupère d’abord toutes les affectations présente dans la configuration, puis, pour chacune, appelle \texttt{accepter()} pour déclencher le traitement par le visiteur.
+    \item \texttt{visiter(Affectation)} : cette méthode récupère l’appel de fonction associé à l’affectation, puis appelle à son tour \texttt{accepter()} sur l’appel de fonction, afin de poursuivre le traitement.
+    \item \texttt{visiter(AppelFonction)} : cette méthode prépare la liste des arguments nécessaires pour créer l’objet correspondant dans le monde du jeu au fur et à mesure.
+\end{itemize}
+
+Nous avons choisi cette architecture pour plusieurs raisons :
+\begin{itemize}
+    \item \textbf{Centralisation} : en regroupant la logique de traitement dans \texttt{LecteurCompil}, nous évitons la dispersion du code et facilitons le suivi du processus global.
+    \item \textbf{Séparation des rôles} : chaque classe \texttt{visitable} (comme \texttt{AppelFonction} ou \texttt{Affectation}) délègue son traitement au visiteur via l’appel à \texttt{accepter()}, ce qui respecte le patron de conception Visiteur et permet de séparer les données de leur traitement.
+    \item \textbf{Facilité de réutilisation} : cette organisation nous permet, si nécessaire, d’ajouter de nouveaux comportements ou de nouveaux types visitables sans modifier en profondeur les classes existantes.
+\end{itemize}
+
+Ainsi, chaque élément de l’AST sait simplement comment appeler \texttt{accepter()} pour laisser le \texttt{LecteurCompil} exécuter la bonne méthode \texttt{visiter()}, assurant un traitement clair, structuré et extensible.
